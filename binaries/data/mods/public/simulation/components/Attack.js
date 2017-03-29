@@ -190,6 +190,17 @@ Attack.prototype.GetAttackTypes = function()
 	return ["Melee", "Ranged", "Capture"].filter(type => !!this.template[type]);
 };
 
+Attack.prototype.GetWantedAttackTypes = function(wantedTypes)
+{
+	let types = this.GetAttackTypes();
+	if (!wantedTypes)
+		return types;
+
+	let wantedTypesReal = wantedTypes.filter(wtype => wtype.indexOf("!") != 0);
+	return types.filter(type => wantedTypes.indexOf("!" + type) == -1 &&
+		(!wantedTypesReal || !wantedTypesReal.length || wantedTypesReal.indexOf(type) != -1));
+};
+
 Attack.prototype.GetPreferredClasses = function(type)
 {
 	if (this.template[type] && this.template[type].PreferredClasses &&
@@ -208,7 +219,7 @@ Attack.prototype.GetRestrictedClasses = function(type)
 	return [];
 };
 
-Attack.prototype.CanAttack = function(target)
+Attack.prototype.CanAttack = function(target, wantedTypes)
 {
 	let cmpFormation = Engine.QueryInterface(target, IID_Formation);
 	if (cmpFormation)
@@ -219,20 +230,32 @@ Attack.prototype.CanAttack = function(target)
 	if (!cmpThisPosition || !cmpTargetPosition || !cmpThisPosition.IsInWorld() || !cmpTargetPosition.IsInWorld())
 		return false;
 
+	let cmpIdentity = Engine.QueryInterface(target, IID_Identity);
+	if (!cmpIdentity)
+		return false;
+
+	let cmpEntityPlayer = QueryOwnerInterface(this.entity);
+	let cmpTargetPlayer = QueryOwnerInterface(target);
+	if (!cmpTargetPlayer || !cmpEntityPlayer)
+		return false;
+
+	let types = this.GetWantedAttackTypes(wantedTypes);
+
+	let targetOwner = cmpEntityPlayer.GetPlayerID();
+	let targetClasses = cmpIdentity.GetClassesList();
+	let cmpCapturable = QueryMiragedInterface(target, IID_Capturable);
+	if (targetClasses.indexOf("Domestic") == -1 && !cmpEntityPlayer.IsEnemy(cmpTargetPlayer.GetPlayerID()) &&
+	   (!cmpCapturable || !cmpCapturable.CanCapture(targetOwner) || types.indexOf("Capture")))
+		return false;
+
 	// Check if the relative height difference is larger than the attack range
 	// If the relative height is bigger, it means they will never be able to
 	// reach each other, no matter how close they come.
 	let heightDiff = Math.abs(cmpThisPosition.GetHeightOffset() - cmpTargetPosition.GetHeightOffset());
 
-	const cmpIdentity = Engine.QueryInterface(target, IID_Identity);
-	if (!cmpIdentity)
-		return undefined;
-
-	const targetClasses = cmpIdentity.GetClassesList();
-
-	for (let type of this.GetAttackTypes())
+	for (let type of types)
 	{
-		if (type == "Capture" && !QueryMiragedInterface(target, IID_Capturable))
+		if (type == "Capture" && (!cmpCapturable || !cmpCapturable.CanCapture(targetOwner)))
 			continue;
 
 		if (heightDiff > this.GetRange(type).max)

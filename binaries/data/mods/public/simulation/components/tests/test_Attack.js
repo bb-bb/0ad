@@ -22,7 +22,8 @@ function attackComponentTest(defenderClass, test_function)
 		});
 
 		AddMock(playerEnt1, IID_Player, {
-			"GetPlayerID": () => 1
+			"GetPlayerID": () => 1,
+			"IsEnemy": () => true
 		});
 	}
 
@@ -87,6 +88,10 @@ function attackComponentTest(defenderClass, test_function)
 		"HasClass": className => className == defenderClass
 	});
 
+	AddMock(defender, IID_Ownership, {
+		"GetOwner": () => 1
+	});
+
 	AddMock(defender, IID_Position, {
 		"IsInWorld": () => true,
 		"GetHeightOffset": () => 0
@@ -103,6 +108,17 @@ attackComponentTest(undefined, (attacker, cmpAttack, defender) => {
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetRestrictedClasses("Melee"), ["Elephant", "Archer"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetFullAttackRange(), { "min": 0, "max": 80 });
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackStrengths("Capture"), { "value": 8 });
+
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(), ["Melee", "Ranged", "Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes([]), ["Melee", "Ranged", "Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Melee", "Ranged", "Capture"]), ["Melee", "Ranged", "Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Melee", "Ranged"]), ["Melee", "Ranged"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Capture"]), ["Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Melee", "!Melee"]), []);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["!Melee"]), ["Ranged", "Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["!Melee", "!Ranged"]), ["Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Capture", "!Ranged"]), ["Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetWantedAttackTypes(["Capture", "Melee", "!Ranged"]), ["Melee", "Capture"]);
 
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackStrengths("Ranged"), {
 		"hack": 0,
@@ -147,8 +163,16 @@ function testGetBestAttackAgainst(defenderClass, bestAttack, isBuilding = false)
 			});
 
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, []), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Ranged"]), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Melee"]), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Capture"]), isBuilding);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Melee", "Capture"]), defenderClass != "Archer");
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Ranged", "Capture"]), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Ranged", "!Melee"]), isBuilding);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Melee", "!Melee"]), false);
 
-		let allowCapturing = [true];
+		let prefAttackTypes = [true];
 		if (!isBuilding)
 			allowCapturing.push(false);
 
