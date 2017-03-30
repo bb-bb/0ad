@@ -86,8 +86,15 @@ RMS.SetProgress(2);
 for (var i=0; i < numPlayers; i++)
 {
 	playerAngle[i] = (playerAngleStart + i*playerAngleAddAvrg + randFloat(0, playerAngleMaxOff))%(2*PI);
-	var x = round(mapCenterX + randFloat(minPlayerRadius, maxPlayerRadius)*cos(playerAngle[i]));
-	var z = round(mapCenterZ + randFloat(minPlayerRadius, maxPlayerRadius)*sin(playerAngle[i]));
+
+	var x = randIntInclusive(
+		mapCenterX + minPlayerRadius * Math.cos(playerAngle[i]),
+		mapCenterX + maxPlayerRadius * Math.cos(playerAngle[i]));
+
+	var z = randIntInclusive(
+		mapCenterZ + minPlayerRadius * Math.sin(playerAngle[i]),
+		mapCenterZ + maxPlayerRadius * Math.sin(playerAngle[i]));
+
 	playerStartLocX[i] = x;
 	playerStartLocZ[i] = z;
 	// Place starting entities
