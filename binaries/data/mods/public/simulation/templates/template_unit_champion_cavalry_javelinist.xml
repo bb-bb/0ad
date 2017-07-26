@@ -29,7 +29,6 @@
   <Sound>
     <SoundGroups>
       <death>actor/fauna/death/death_horse.xml</death>
-      <attack>attack/weapon/arrowfly.xml</attack>
     </SoundGroups>
   </Sound>
   <UnitMotion>
