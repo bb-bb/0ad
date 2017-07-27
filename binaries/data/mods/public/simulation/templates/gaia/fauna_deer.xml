@@ -12,6 +12,13 @@
   <Position>
     <Anchor>pitch</Anchor>
   </Position>
+  <Sound>
+    <SoundGroups>
+      <select>actor/fauna/animal/horse_select.xml</select>
+      <attack_melee>actor/fauna/animal/horse_attack.xml</attack_melee>
+      <death>actor/fauna/animal/horse_select.xml</death>
+    </SoundGroups>
+  </Sound>
   <UnitMotion>
     <WalkSpeed>2.0</WalkSpeed>
     <Run>

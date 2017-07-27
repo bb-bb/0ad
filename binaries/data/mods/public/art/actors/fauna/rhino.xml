@@ -10,7 +10,7 @@
         <animation file="quadraped/rhino_walk.dae" name="Walk" speed="20"/>
         <animation file="quadraped/rhino_run.dae" name="run" speed="10"/>
         <animation file="quadraped/rhino_death.dae" name="death" speed="100"/>
-        <animation file="quadraped/rhino_attack.dae" name="attack_melee" speed="100"/>
+        <animation event="0.1" file="quadraped/rhino_attack.dae" name="attack_melee" speed="100"/>
       </animations>
       <mesh>skeletal/rhino.dae</mesh>
     </variant>

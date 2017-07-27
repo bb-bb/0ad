@@ -14,8 +14,8 @@
 		<animation file="quadraped/feline_idle_03.dae" name="Idle" speed="100"/>
 		<animation file="quadraped/feline_idle_03.dae" name="Idle" speed="100"/>
 		<animation file="quadraped/feline_idle_04.dae" name="Idle" speed="100"/>
-		<animation file="quadraped/feline_attack.dae" name="attack_melee" speed="100"/>
-		<animation file="quadraped/feline_attack_02.dae" name="attack_melee" speed="100"/>
+		<animation event="0.1" file="quadraped/feline_attack.dae" name="attack_melee" speed="100"/>
+		<animation event="0.1" file="quadraped/feline_attack_02.dae" name="attack_melee" speed="100"/>
 		<animation file="quadraped/feline_walk.dae" name="walk" speed="40"/>
 		<animation file="quadraped/feline_run.dae" name="run" speed="20"/>
 		<animation file="quadraped/feline_death.dae" name="Death" speed="100"/>

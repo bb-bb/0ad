@@ -7,8 +7,8 @@
         <animations>
           <animation file="quadraped/wolf_walk.dae" name="Walk" speed="75"/>
           <animation file="quadraped/wolf_run.dae" name="Run" speed="10"/>   
-          <animation file="quadraped/wolf_attack_01.dae" name="attack_melee" speed="165"/>
-          <animation file="quadraped/wolf_attack_02.dae" name="attack_melee" speed="165"/>
+          <animation event="0.1" file="quadraped/wolf_attack_01.dae" name="attack_melee" speed="165"/>
+          <animation event="0.1" file="quadraped/wolf_attack_02.dae" name="attack_melee" speed="165"/>
           <animation file="quadraped/wolf_idle_01.dae" name="Idle" speed="100"/>     
           <animation file="quadraped/wolf_idle_02.dae" name="Idle" speed="100"/> 
           <animation file="quadraped/wolf_idle_03.dae" name="Idle" speed="100"/>

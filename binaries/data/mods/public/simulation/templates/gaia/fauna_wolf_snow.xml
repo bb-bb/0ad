@@ -4,6 +4,13 @@
     <SpecificName>Snow Wolf</SpecificName>
     <Icon>gaia/fauna_wolf_snow.png</Icon>
   </Identity>
+  <Sound>
+    <SoundGroups>
+      <select>actor/fauna/animal/lion_select.xml</select>
+      <attack_melee>actor/fauna/animal/lion_attack.xml</attack_melee>
+      <death>actor/fauna/animal/lion_select.xml</death>
+    </SoundGroups>
+  </Sound>
   <VisualActor>
     <Actor>fauna/wolf_snow.xml</Actor>
   </VisualActor>
