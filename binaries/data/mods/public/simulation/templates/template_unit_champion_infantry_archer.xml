@@ -31,7 +31,7 @@
   </Identity>
   <Sound>
     <SoundGroups>
-      <attack>attack/weapon/arrowfly.xml</attack>
+      <attack_impact>attack/impact/arrow_metal.xml</attack_impact>
     </SoundGroups>
   </Sound>
   <UnitMotion>

@@ -29,11 +29,6 @@
       formations/skirmish
     </Formations>
   </Identity>
-  <Sound>
-    <SoundGroups>
-      <attack>attack/weapon/arrowfly.xml</attack>
-    </SoundGroups>
-  </Sound>
   <UnitMotion>
     <WalkSpeed>16.0</WalkSpeed>
     <Run>

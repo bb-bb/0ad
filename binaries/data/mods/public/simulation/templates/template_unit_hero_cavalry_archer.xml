@@ -21,4 +21,9 @@
       formations/skirmish
     </Formations>
   </Identity>
+  <Sound>
+    <SoundGroups>
+      <attack_impact>attack/impact/arrow_metal.xml</attack_impact>
+    </SoundGroups>
+  </Sound>
 </Entity>

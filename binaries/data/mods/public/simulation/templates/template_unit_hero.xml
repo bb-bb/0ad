@@ -54,7 +54,7 @@
   </Selectable>
   <Sound>
     <SoundGroups>
-      <attack>attack/weapon/sword.xml</attack>
+      <attack_ranged>attack/weapon/arrowfly.xml</attack_ranged>
       <death>actor/human/death/death.xml</death>
     </SoundGroups>
   </Sound>
