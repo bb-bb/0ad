@@ -160,10 +160,11 @@ m.EntityCollection.prototype.moveToRange = function(x, z, min, max, queued)
 	return this;
 };
 
+// TODO prefAttackTypes
 m.EntityCollection.prototype.attackMove = function(x, z, targetClasses, queued)
 {
 	queued = queued || false;
-	Engine.PostCommand(PlayerID,{"type": "attack-walk", "entities": this.toIdArray(), "x": x, "z": z, "targetClasses": targetClasses, "queued": queued});
+	Engine.PostCommand(PlayerID, { "type": "attack-walk", "entities": this.toIdArray(), "x": x, "z": z, "targetClasses": targetClasses, "prefAttackTypes": undefined, "queued": queued });
 	return this;
 };
 
@@ -187,9 +188,10 @@ m.EntityCollection.prototype.destroy = function()
 	return this;
 };
 
+// TODO prefAttackTypes
 m.EntityCollection.prototype.attack = function(unitId)
 {
-	Engine.PostCommand(PlayerID,{"type": "attack", "entities": this.toIdArray(), "target": unitId, "queued": false});
+	Engine.PostCommand(PlayerID,{ "type": "attack", "entities": this.toIdArray(), "target": unitId, "prefAttackTypes": undefined, "queued": false });
 	return this;
 };
 

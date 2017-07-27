@@ -2130,17 +2130,18 @@ m.HQ.prototype.updateCaptureStrength = function(gameState)
 	for (let [targetId, capturableTarget] of this.capturableTargets)
 	{
 		let target = gameState.getEntityById(targetId);
-		let allowCapture;
+		let prefAttackTypes;
 		for (let entId of capturableTarget.ents)
 		{
 			let ent = gameState.getEntityById(entId);
-			if (allowCapture === undefined)
-				allowCapture = m.allowCapture(gameState, ent, target);
+			if (prefAttackTypes === undefined)
+				prefAttackTypes = m.getPrefAttackTypes(gameState, ent, target);
 			let orderData = ent.unitAIOrderData();
 			if (!orderData || !orderData.length || !orderData[0].attackType)
 				continue;
-			if ((orderData[0].attackType === "Capture") !== allowCapture)
-				ent.attack(targetId, allowCapture);
+			// TODO Doesn't solve ["Melee"] and stuff, but petra doesn't use those for now. 
+			if ((orderData[0].attackType === "Capture") !== (prefAttackTypes.indexOf("!Capture") == -1))
+				ent.attack(targetId, prefAttackTypes);
 		}
 	}
 

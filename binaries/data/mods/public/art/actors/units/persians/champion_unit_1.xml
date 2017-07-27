@@ -24,6 +24,11 @@
     <variant frequency="1" name="Idle"/>
     <variant file="biped/attack_capture.xml"/>
     <variant file="biped/attack_slaughter.xml"/>
+    <variant file="biped/attack_ranged_archer_hip.xml">
+      <props>
+        <prop actor="props/units/weapons/bow_recurve.xml" attachpoint="weapon_L"/>
+      </props>
+    </variant>
     <variant file="biped/gather_tree.xml"/>
     <variant file="biped/gather_grain.xml"/>
     <variant file="biped/gather_fruit.xml"/>

@@ -15,6 +15,7 @@ var g_DamageTypes = {
 	"hack": translate("Hack"),
 	"pierce": translate("Pierce"),
 	"crush": translate("Crush"),
+	"captureValue": translate("Capture")
 };
 
 var g_SplashDamageTypes = {
@@ -205,7 +206,7 @@ function damageTypesToText(dmg)
 		return '[font="sans-12"]' + translate("(None)") + '[/font]';
 
 	return Object.keys(g_DamageTypes).filter(
-		dmgType => dmg[dmgType]).map(
+		dmgType => !!dmg[dmgType]).map(
 		dmgType => sprintf(translate("%(damage)s %(damageType)s"), {
 			"damage": dmg[dmgType].toFixed(1),
 			"damageType": unitFont(g_DamageTypes[dmgType])
@@ -226,26 +227,13 @@ function getAttackTooltip(template)
 		let rate = sprintf(translate("%(label)s %(details)s"), {
 			"label":
 				headerFont(
-					template.buildingAI && type == "Ranged" ?
+					template.buildingAI && template.attack[type].projectile ?
 						translate("Interval:") :
 						translate("Rate:")),
 			"details": attackRateDetails(template, type)
 		});
 
 		let attackLabel = headerFont(g_AttackTypes[type]);
-		if (type == "Capture" || type != "Ranged")
-		{
-			tooltips.push(sprintf(translate("%(attackLabel)s %(details)s, %(rate)s"), {
-				"attackLabel": attackLabel,
-				"details":
-					type == "Capture" ?
-						template.attack.Capture.value :
-						damageTypesToText(template.attack[type]),
-				"rate": rate
-			}));
-			continue;
-		}
-
 		let minRange = Math.round(template.attack[type].minRange);
 		let maxRange = Math.round(template.attack[type].maxRange);
 		let realRange = template.attack[type].elevationAdaptedRange;

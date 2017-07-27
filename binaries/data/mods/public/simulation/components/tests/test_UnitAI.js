@@ -98,7 +98,7 @@ function TestFormationExiting(mode)
 	AddMock(unit, IID_Attack, {
 		GetRange: function() { return { "max": 10, "min": 0}; },
 		GetFullAttackRange: function() { return { "max": 40, "min": 0}; },
-		GetBestAttackAgainst: function(t) { return "melee"; },
+		GetBestAttackAgainst: function(t) { return "Melee"; },
 		GetPreference: function(t) { return 0; },
 		GetTimers: function() { return { "prepare": 500, "repeat": 1000 }; },
 		CanAttack: function(v) { return true; },
@@ -249,7 +249,7 @@ function TestMoveIntoFormationWhileAttacking()
 		AddMock(unit + i, IID_Attack, {
 			GetRange: function() { return {"max":10, "min": 0}; },
 			GetFullAttackRange: function() { return { "max": 40, "min": 0}; },
-			GetBestAttackAgainst: function(t) { return "melee"; },
+			GetBestAttackAgainst: function(t) { return "Melee"; },
 			GetTimers: function() { return { "prepare": 500, "repeat": 1000 }; },
 			CanAttack: function(v) { return true; },
 			CompareEntitiesByPreference: function(a, b) { return 0; },

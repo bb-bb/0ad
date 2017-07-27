@@ -11,7 +11,7 @@
 		{ "value": "Attack/Ranged/Hack", "multiply": 1.2 },
 		{ "value": "Attack/Ranged/Pierce", "multiply": 1.2 },
 		{ "value": "Attack/Ranged/Crush", "multiply": 1.2 },
-		{ "value": "Attack/Capture/Value", "add": 2 }
+		{ "value": "Attack/Capture/CaptureValue", "add": 2 }
 	],
 	"auraName": "Champion Army",
 	"auraDescription": "+20% attack, +2 capture and +10% speed for champion units.",

@@ -4,8 +4,10 @@ Engine.LoadHelperScript("ValueModification.js");
 Engine.LoadComponentScript("interfaces/Attack.js");
 Engine.LoadComponentScript("interfaces/AttackDetection.js");
 Engine.LoadComponentScript("interfaces/AuraManager.js");
+Engine.LoadComponentScript("interfaces/Capturable.js");
 Engine.LoadComponentScript("interfaces/Damage.js");
 Engine.LoadComponentScript("interfaces/DamageReceiver.js");
+Engine.LoadComponentScript("interfaces/Formation.js");
 Engine.LoadComponentScript("interfaces/Health.js");
 Engine.LoadComponentScript("interfaces/Loot.js");
 Engine.LoadComponentScript("interfaces/Player.js");
@@ -23,7 +25,17 @@ cmpTimer.OnUpdate({ turnLength: 1 });
 let attacker = 11;
 let atkPlayerEntity = 1;
 let attackerOwner = 6;
-let cmpAttack = ConstructComponent(attacker, "Attack", { "Ranged": { "ProjectileSpeed": 500, "Spread": 0.5, "MaxRange": 50, "MinRange": 0 } } );
+let cmpAttack = ConstructComponent(attacker, "Attack", {
+	"Ranged": {
+		"Projectile": {
+			"ProjectileSpeed": 500,
+			"Spread": 0.5
+		},
+		"MaxRange": 50,
+		"MinRange": 0
+	}
+});
+
 let damage = 5;
 let target = 21;
 let targetOwner = 7;
@@ -32,7 +44,7 @@ let targetPos = new Vector3D(3, 0, 3);
 let type = "Melee";
 let damageTaken = false;
 
-cmpAttack.GetAttackStrengths = (type) => ({ "hack": 0, "pierce": 0, "crush": damage });
+cmpAttack.GetAttackStrengths = (type) => ({ "hack": 0, "pierce": 0, "crush": damage, "captureValue": 0 });
 cmpAttack.GetAttackBonus = (type, target) => 1.0;
 
 let data = {
@@ -49,6 +61,8 @@ let data = {
 
 AddMock(atkPlayerEntity, IID_Player, {
 	GetEnemies: () => [targetOwner],
+	IsEnemy: (ent) => true,
+	GetPlayerID: () => 1
 });
 
 AddMock(SYSTEM_ENTITY, IID_PlayerManager, {
@@ -65,11 +79,20 @@ AddMock(SYSTEM_ENTITY, IID_ProjectileManager, {
 	LaunchProjectileAtPoint: (ent, pos, speed, gravity) => {},
 });
 
+AddMock(target, IID_Identity, {
+	"GetClassesList": () => ["Infantry"]
+});
+
+AddMock(target, IID_Ownership, {
+	"GetOwner": () => 2
+});
+
 AddMock(target, IID_Position, {
 	GetPosition: () => targetPos,
 	GetPreviousPosition: () => targetPos,
 	GetPosition2D: () => new Vector2D(3, 3),
-	IsInWorld: () => true,
+	GetHeightOffset: () => 0,
+	IsInWorld: () => true
 });
 
 AddMock(target, IID_Health, {});
@@ -88,13 +111,15 @@ AddMock(target, IID_Footprint, {
 });
 
 AddMock(attacker, IID_Ownership, {
-	GetOwner: () => attackerOwner,
+	GetOwner: () => attackerOwner
 });
 
 AddMock(attacker, IID_Position, {
 	GetPosition: () => new Vector3D(2, 0, 3),
 	GetRotation: () => new Vector3D(1, 2, 3),
-	IsInWorld: () => true,
+	GetHeightOffset: () => 0,
+	GetTurretParent: () => INVALID_ENTITY,
+	IsInWorld: () => true
 });
 
 function TestDamage()

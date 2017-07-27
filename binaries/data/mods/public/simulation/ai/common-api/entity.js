@@ -222,6 +222,7 @@ m.Template = m.Class({
 		};
 	},
 
+	// TODO splash?
 	attackStrengths: function(type) {
 		if (!this.get("Attack/" + type +""))
 			return undefined;
@@ -229,7 +230,8 @@ m.Template = m.Class({
 		return {
 			hack: +(this.get("Attack/" + type + "/Hack") || 0),
 			pierce: +(this.get("Attack/" + type + "/Pierce") || 0),
-			crush: +(this.get("Attack/" + type + "/Crush") || 0)
+			crush: +(this.get("Attack/" + type + "/Crush") || 0),
+			captureValue: +(this.get("Attack/" + type + "/CaptureValue") || 0)
 		};
 	},
 
@@ -237,7 +239,7 @@ m.Template = m.Class({
 		if (!this.get("Attack/Capture"))
 			return undefined;
 
-		return +this.get("Attack/Capture/Value") || 0;
+		return +this.get("Attack/Capture/CaptureValue") || 0; // TODO merge this with the above?
 	},
 
 	attackTimes: function(type) {
@@ -781,8 +783,10 @@ m.Entity = m.Class({
 		return this;
 	},
 
-	attackMove: function(x, z, targetClasses, queued = false) {
-		Engine.PostCommand(PlayerID,{"type": "attack-walk", "entities": [this.id()], "x": x, "z": z, "targetClasses": targetClasses, "queued": queued });
+	// TODO prefAttackTypes
+	attackMove: function(x, z, targetClasses, queued = false)
+	{
+		Engine.PostCommand(PlayerID, { "type": "attack-walk", "entities": [this.id()], "x": x, "z": z, "targetClasses": targetClasses, "prefAttackTypes": undefined, "queued": queued });
 		return this;
 	},
 
@@ -818,8 +822,8 @@ m.Entity = m.Class({
 		return this;
 	},
 
-	attack: function(unitId, allowCapture = true, queued = false) {
-		Engine.PostCommand(PlayerID,{"type": "attack", "entities": [this.id()], "target": unitId, "allowCapture": allowCapture, "queued": queued});
+	attack: function(unitId, prefAttackTypes = undefined, queued = false) {
+		Engine.PostCommand(PlayerID,{ "type": "attack", "entities": [this.id()], "target": unitId, "prefAttackTypes": prefAttackTypes, "queued": queued });
 		return this;
 	},
 

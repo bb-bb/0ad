@@ -106,6 +106,24 @@ function GetModifiedTemplateDataValue(template, value_path, mod_key, player, mod
 }
 
 /**
+ * Check if entity has all needed attack types.
+ */
+function HasNeededAttackTypes(attack, neededAttackTypes)
+{
+	if (!neededAttackTypes || !neededAttackTypes.length)
+		return true;
+
+	if (!attack)
+		return false;
+
+	for (let type of neededAttackTypes)
+		if (attack.constructor === Object && !attack[type] || 
+		    attack.constructor === Array && attack.indexOf(type) == -1)
+			return false;
+	return true; 
+}
+
+/**
  * Get information about a template with or without technology modifications.
  *
  * NOTICE: The data returned here should have the same structure as
@@ -147,23 +165,20 @@ function GetTemplateDataHelper(template, player, auraTemplates, resources, modif
 				return getEntityValue("Attack/" + type + "/" + stat);
 			};
 
-			if (type == "Capture")
-				ret.attack.Capture = {
-					"value": getAttackStat("Value")
-				};
-			else
-			{
-				ret.attack[type] = {
-					"hack": getAttackStat("Hack"),
-					"pierce": getAttackStat("Pierce"),
-					"crush": getAttackStat("Crush"),
-					"minRange": getAttackStat("MinRange"),
-					"maxRange": getAttackStat("MaxRange"),
-					"elevationBonus": getAttackStat("ElevationBonus")
-				};
-				ret.attack[type].elevationAdaptedRange = Math.sqrt(ret.attack[type].maxRange *
-					(2 * ret.attack[type].elevationBonus + ret.attack[type].maxRange));
-			}
+			ret.attack[type] = {
+				"hack": getAttackStat("Hack"),
+				"pierce": getAttackStat("Pierce"),
+				"crush": getAttackStat("Crush"),
+				"captureValue": getAttackStat("CaptureValue"),
+				"minRange": getAttackStat("MinRange"),
+				"maxRange": getAttackStat("MaxRange"),
+				"elevationBonus": getAttackStat("ElevationBonus"),
+				"projectile": !!template.Attack[type].Projectile
+			};
+
+			ret.attack[type].elevationAdaptedRange = Math.sqrt(ret.attack[type].maxRange *
+				(2 * ret.attack[type].elevationBonus + ret.attack[type].maxRange));
+
 			ret.attack[type].repeatTime = getAttackStat("RepeatTime");
 
 			if (template.Attack[type].Splash)

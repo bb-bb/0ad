@@ -1246,13 +1246,13 @@ m.AttackPlan.prototype.update = function(gameState, events)
 				{
 					if (m.isSiegeUnit(ent))	// needed as mauryan elephants are not filtered out
 						continue;
-					ent.attack(attacker.id(), m.allowCapture(gameState, ent, attacker));
+					ent.attack(attacker.id(), m.getPrefAttackTypes(gameState, ent, attacker));
 					ent.setMetadata(PlayerID, "lastAttackPlanUpdateTime", time);
 				}
 				// And if this attacker is a non-ranged siege unit and our unit also, attack it
 				if (m.isSiegeUnit(attacker) && attacker.hasClass("Melee") && ourUnit.hasClass("Melee"))
 				{
-					ourUnit.attack(attacker.id(), m.allowCapture(gameState, ourUnit, attacker));
+					ourUnit.attack(attacker.id(), m.getPrefAttackTypes(gameState, ourUnit, attacker));
 					ourUnit.setMetadata(PlayerID, "lastAttackPlanUpdateTime", time);
 				}
 			}
@@ -1269,7 +1269,7 @@ m.AttackPlan.prototype.update = function(gameState, events)
 					let collec = this.unitCollection.filter(API3.Filters.byClass("Melee")).filterNearest(ourUnit.position(), 5);
 					for (let ent of collec.values())
 					{
-						ent.attack(attacker.id(), m.allowCapture(gameState, ent, attacker));
+						ent.attack(attacker.id(), m.getPrefAttackTypes(gameState, ent, attacker));
 						ent.setMetadata(PlayerID, "lastAttackPlanUpdateTime", time);
 					}
 				}
@@ -1288,7 +1288,7 @@ m.AttackPlan.prototype.update = function(gameState, events)
 								continue;
 						}
 					}
-					ourUnit.attack(attacker.id(), m.allowCapture(gameState, ourUnit, attacker));
+					ourUnit.attack(attacker.id(), m.getPrefAttackTypes(gameState, ourUnit, attacker));
 					ourUnit.setMetadata(PlayerID, "lastAttackPlanUpdateTime", time);
 				}
 			}
@@ -1466,11 +1466,11 @@ m.AttackPlan.prototype.update = function(gameState, events)
 						return valb - vala;
 					});
 					if (mStruct[0].hasClass("Gates"))
-						ent.attack(mStruct[0].id(), m.allowCapture(gameState, ent, mStruct[0]));
+						ent.attack(mStruct[0].id(), m.getPrefAttackTypes(gameState, ent, mStruct[0]));
 					else
 					{
 						let rand = randIntExclusive(0, mStruct.length * 0.2);
-						ent.attack(mStruct[rand].id(), m.allowCapture(gameState, ent, mStruct[rand]));
+						ent.attack(mStruct[rand].id(), m.getPrefAttackTypes(gameState, ent, mStruct[rand]));
 					}
 				}
 				else
@@ -1528,10 +1528,10 @@ m.AttackPlan.prototype.update = function(gameState, events)
 						return valb - vala;
 					});
 					let rand = randIntExclusive(0, mUnit.length * 0.1);
-					ent.attack(mUnit[rand].id(), m.allowCapture(gameState, ent, mUnit[rand]));
+					ent.attack(mUnit[rand].id(), m.getPrefAttackTypes(gameState, ent, mUnit[rand]));
 				}
 				else if (this.isBlocked)
-					ent.attack(this.target.id(), false);
+					ent.attack(this.target.id(), ["!Capture"]);
 				else if (API3.SquareVectorDistance(this.targetPos, ent.position()) > 2500 )
 				{
 					let targetClasses = targetClassesUnit;
@@ -1575,11 +1575,11 @@ m.AttackPlan.prototype.update = function(gameState, events)
 							return valb - vala;
 						});
 						if (mStruct[0].hasClass("Gates"))
-							ent.attack(mStruct[0].id(), false);
+							ent.attack(mStruct[0].id(), ["!Capture"]);
 						else
 						{
 							let rand = randIntExclusive(0, mStruct.length * 0.2);
-							ent.attack(mStruct[rand].id(), m.allowCapture(gameState, ent, mStruct[rand]));
+							ent.attack(mStruct[rand].id(), m.getPrefAttackTypes(gameState, ent, mStruct[rand]));
 						}
 					}
 					else if (needsUpdate)  // really nothing   let's try to help our nearest unit
@@ -1601,7 +1601,7 @@ m.AttackPlan.prototype.update = function(gameState, events)
 							attacker = gameState.getEntityById(unit.unitAIOrderData()[0].target);
 						});
 						if (attacker)
-							ent.attack(attacker.id(), m.allowCapture(gameState, ent, attacker));
+							ent.attack(attacker.id(), m.getPrefAttackTypes(gameState, ent, attacker));
 					}
 				}
 			}
@@ -1654,7 +1654,7 @@ m.AttackPlan.prototype.UpdateTransporting = function(gameState, events)
 				continue;
 			if (!ent.isIdle())
 				continue;
-			ent.attack(attacker.id(), m.allowCapture(gameState, ent, attacker));
+			ent.attack(attacker.id(), m.getPrefAttackTypes(gameState, ent, attacker));
 		}
 		break;
 	}

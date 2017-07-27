@@ -376,6 +376,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 			"entities": cmpGarrisonHolder.GetEntities(),
 			"buffHeal": cmpGarrisonHolder.GetHealRate(),
 			"allowedClasses": cmpGarrisonHolder.GetAllowedClasses(),
+			"neededAttackTypes": cmpGarrisonHolder.GetNeededAttackTypes(),
 			"capacity": cmpGarrisonHolder.GetCapacity(),
 			"garrisonedEntitiesCount": cmpGarrisonHolder.GetGarrisonedEntitiesCount()
 		};
@@ -466,40 +467,28 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 			let range = cmpAttack.GetRange(type);
 			ret.attack[type].minRange = range.min;
 			ret.attack[type].maxRange = range.max;
+			ret.attack[type].elevationBonus = range.elevationBonus;
 
 			let timers = cmpAttack.GetTimers(type);
 			ret.attack[type].prepareTime = timers.prepare;
 			ret.attack[type].repeatTime = timers.repeat;
-
-			if (type != "Ranged")
-			{
-				// not a ranged attack, set some defaults
-				ret.attack[type].elevationBonus = 0;
-				ret.attack[type].elevationAdaptedRange = ret.attack.maxRange;
-				continue;
-			}
-
-			ret.attack[type].elevationBonus = range.elevationBonus;
+			ret.attack[type].projectile = cmpAttack.HasProjectile(type);
 
 			let cmpPosition = Engine.QueryInterface(ent, IID_Position);
 			let cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
 			let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 
+			// For units, take the range in front of it, no spread. So angle = 0
 			if (cmpUnitAI && cmpPosition && cmpPosition.IsInWorld())
-			{
-				// For units, take the range in front of it, no spread. So angle = 0
 				ret.attack[type].elevationAdaptedRange = cmpRangeManager.GetElevationAdaptedRange(cmpPosition.GetPosition(), cmpPosition.GetRotation(), range.max, range.elevationBonus, 0);
-			}
-			else if(cmpPosition && cmpPosition.IsInWorld())
-			{
-				// For buildings, take the average elevation around it. So angle = 2*pi
+
+			// For buildings, take the average elevation around it. So angle = 2*pi
+			else if (cmpPosition && cmpPosition.IsInWorld())
 				ret.attack[type].elevationAdaptedRange = cmpRangeManager.GetElevationAdaptedRange(cmpPosition.GetPosition(), cmpPosition.GetRotation(), range.max, range.elevationBonus, 2*Math.PI);
-			}
+
+			// Not in world?, set a default
 			else
-			{
-				// not in world, set a default?
 				ret.attack[type].elevationAdaptedRange = ret.attack.maxRange;
-			}
 		}
 	}
 

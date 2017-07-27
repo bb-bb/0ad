@@ -37,6 +37,8 @@ m.getMaxStrength = function(ent, againstClass)
 			case "pierce":
 				strength += val * 0.065 / 3;
 				break;
+			case "captureValue":
+				break; // TODO Don't ignore capture
 			default:
 				API3.warn("Petra: " + str + " unknown attackStrength in getMaxStrength");
 			}
@@ -125,14 +127,16 @@ m.getSeaAccess = function(gameState, ent)
 	return sea;
 };
 
-/** Decide if we should try to capture (returns true) or destroy (return false) */
-m.allowCapture = function(gameState, ent, target)
+/**
+ * Decide if we should try to capture, melee or ranged attack.
+ */
+m.getPrefAttackTypes = function(gameState, ent, target)
 {
 	if (!target.isCapturable() || !ent.canCapture(target))
-		return false;
+		return ["!Capture"];
 	// always try to recapture cp from an allied, except if it's decaying
 	if (gameState.isPlayerAlly(target.owner()))
-		return !target.decaying();
+		return target.decaying() ? ["!Capture"] : ["Capture"];
 
 	let antiCapture = target.defaultRegenRate();
 	if (target.isGarrisonHolder() && target.garrisoned())
@@ -160,8 +164,8 @@ m.allowCapture = function(gameState, ent, target)
 	capture *= 1 / ( 0.1 + 0.9*target.healthLevel());
 	let sumCapturePoints = target.capturePoints().reduce((a, b) => a + b);
 	if (target.hasDefensiveFire() && target.isGarrisonHolder() && target.garrisoned())
-		return capture > antiCapture + sumCapturePoints/50;
-	return capture > antiCapture + sumCapturePoints/80;
+		return capture > antiCapture + sumCapturePoints/50 ? ["Capture"] : ["!Capture"];
+	return capture > antiCapture + sumCapturePoints/80 ? ["Capture"] : ["!Capture"];
 };
 
 /** copy of GetAttackBonus from Attack.js */

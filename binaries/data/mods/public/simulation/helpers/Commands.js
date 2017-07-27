@@ -166,20 +166,18 @@ var g_Commands = {
 	"attack-walk": function(player, cmd, data)
 	{
 		GetFormationUnitAIs(data.entities, player).forEach(cmpUnitAI => {
-			cmpUnitAI.WalkAndFight(cmd.x, cmd.z, cmd.targetClasses, cmd.queued);
+			cmpUnitAI.WalkAndFight(cmd.x, cmd.z, cmd.targetClasses, cmd.prefAttackTypes, cmd.queued);
 		});
 	},
 
 	"attack": function(player, cmd, data)
 	{
-		let allowCapture = cmd.allowCapture || cmd.allowCapture == null;
-
-		if (g_DebugCommands && !allowCapture &&
-		   !(IsOwnedByEnemyOfPlayer(player, cmd.target) || IsOwnedByNeutralOfPlayer(player, cmd.target)))
+		// TODO there shouldn't be an error when we can capture.
+		if (g_DebugCommands && !(IsOwnedByEnemyOfPlayer(player, cmd.target) || IsOwnedByNeutralOfPlayer(player, cmd.target)))
 			warn("Invalid command: attack target is not owned by enemy of player "+player+": "+uneval(cmd));
 
 		GetFormationUnitAIs(data.entities, player).forEach(cmpUnitAI => {
-			cmpUnitAI.Attack(cmd.target, cmd.queued, allowCapture);
+			cmpUnitAI.Attack(cmd.target, cmd.prefAttackTypes, cmd.queued);
 		});
 	},
 

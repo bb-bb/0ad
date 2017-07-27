@@ -11,7 +11,8 @@
   </Cost>
   <GarrisonHolder>
     <Max>3</Max>
-    <List datatype="tokens">Ranged+Infantry</List>
+    <List datatype="tokens">Infantry</List>
+    <NeededAttackTypes datatype="tokens">Ranged</NeededAttackTypes>
     <EjectHealth>0.1</EjectHealth>
     <EjectClassesOnDestroy datatype="tokens">Unit</EjectClassesOnDestroy>
     <BuffHeal>0</BuffHeal>

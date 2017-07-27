@@ -109,10 +109,10 @@ m.Worker.prototype.update = function(gameState, ent)
 			if (orderData && orderData.target && orderData.attackType && orderData.attackType === "Capture")
 			{
 				// If we are here, an enemy structure must have targeted one of our workers
-				// and UnitAI sent it fight back with allowCapture=true
+				// and UnitAI sent it fight back with prefAttackTypes === undefined.
 				let target = gameState.getEntityById(orderData.target);
 				if (target && target.owner() > 0 && !gameState.isPlayerAlly(target.owner()))
-					ent.attack(orderData.target, m.allowCapture(gameState, ent, target));
+					ent.attack(orderData.target, m.getPrefAttackTypes(gameState, ent, target));
 			}
 		}
 		return;

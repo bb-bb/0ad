@@ -63,7 +63,7 @@ var unitActions =
 
 			return { "type": "move" };
 		},
-		"specificness": 12,
+		"specificness": 13,
 	},
 
 	"attack-move":
@@ -82,6 +82,7 @@ var unitActions =
 				"x": target.x,
 				"z": target.z,
 				"targetClasses": targetClasses,
+				"prefAttackTypes": ["!Capture"],
 				"queued": queued
 			});
 
@@ -119,7 +120,7 @@ var unitActions =
 				"type": "attack",
 				"entities": selection,
 				"target": action.target,
-				"allowCapture": true,
+				"prefAttackTypes": ["Capture"],
 				"queued": queued
 			});
 
@@ -154,7 +155,7 @@ var unitActions =
 				"target": target
 			};
 		},
-		"specificness": 9,
+		"specificness": 7,
 	},
 
 	"attack":
@@ -165,8 +166,8 @@ var unitActions =
 				"type": "attack",
 				"entities": selection,
 				"target": action.target,
-				"queued": queued,
-				"allowCapture": false
+				"prefAttackTypes": ["!Capture"],
+				"queued": queued
 			});
 
 			Engine.GuiInterfaceCall("PlaySound", {
@@ -212,6 +213,120 @@ var unitActions =
 				"target": target
 			};
 		},
+		"specificness": 8,
+	},
+
+	"melee-attack":
+	{
+		"execute": function(target, action, selection, queued)
+		{
+			Engine.PostNetworkCommand({
+				"type": "attack",
+				"entities": selection,
+				"target": action.target,
+				"prefAttackTypes": ["Melee"],
+				"queued": queued
+			});
+
+			Engine.GuiInterfaceCall("PlaySound", {
+				"name": "order_attack",
+				"entity": selection[0]
+			});
+
+			return true;
+		},
+		"getActionInfo": function(entState, targetState)
+		{
+			if (!entState.attack || !targetState.hitpoints)
+				return false;
+
+			return {
+				"possible": Engine.GuiInterfaceCall("CanAttack", {
+					"entity": entState.id,
+					"target": targetState.id,
+					"types": ["Melee"]
+				})
+			};
+		},
+		"hotkeyActionCheck": function(target)
+		{
+			if (!Engine.HotkeyIsPressed("session.meleeattack") || !getActionInfo("melee-attack", target).possible)
+				return false;
+
+			return {
+				"type": "melee-attack",
+				"cursor": "action-melee-attack",
+				"target": target
+			};
+		},
+		"actionCheck": function(target)
+		{
+			if (!getActionInfo("melee-attack", target).possible)
+				return false;
+
+			return {
+				"type": "melee-attack",
+				"cursor": "action-melee-attack",
+				"target": target
+			};
+		},
+		"specificness": 9,
+	},
+
+	"ranged-attack":
+	{
+		"execute": function(target, action, selection, queued)
+		{
+			Engine.PostNetworkCommand({
+				"type": "attack",
+				"entities": selection,
+				"target": action.target,
+				"prefAttackTypes": ["Ranged"],
+				"queued": queued
+			});
+
+			Engine.GuiInterfaceCall("PlaySound", {
+				"name": "order_attack",
+				"entity": selection[0]
+			});
+
+			return true;
+		},
+		"getActionInfo": function(entState, targetState)
+		{
+			if (!entState.attack || !targetState.hitpoints)
+				return false;
+
+			return {
+				"possible": Engine.GuiInterfaceCall("CanAttack", {
+					"entity": entState.id,
+					"target": targetState.id,
+					"types": ["Ranged"]
+				})
+			};
+		},
+		"hotkeyActionCheck": function(target, selection)
+		{
+			if (!Engine.HotkeyIsPressed("session.rangedattack") || !getActionInfo("ranged-attack", target).possible)
+				return false;
+
+			return {
+				"type": "ranged-attack",
+				"cursor": "action-ranged-attack",
+				"target": target
+			};
+		},
+		"actionCheck": function(target, selection)
+		{
+			if (!getActionInfo("ranged-attack", target).possible)
+				return false;
+
+			return {
+				"type": "ranged-attack",
+				"cursor": "action-ranged-attack",
+				"target": target
+			};
+		},
 		"specificness": 10,
 	},
 
@@ -226,8 +341,8 @@ var unitActions =
 				"z": target.z,
 				"target": action.target,
 				"targetClasses": { "attack": g_PatrolTargets },
-				"queued": queued,
-				"allowCapture": false
+				"prefAttackTypes": ["!Capture"],
+				"queued": queued
 			});
 			Engine.GuiInterfaceCall("PlaySound", { "name": "order_patrol", "entity": selection[0] });
 			return true;
@@ -311,7 +426,7 @@ var unitActions =
 				"target": target
 			};
 		},
-		"specificness": 7,
+		"specificness": 6,
 	},
 
 	"build":
@@ -424,7 +539,7 @@ var unitActions =
 				"target": target
 			};
 		},
-		"specificness": 11,
+		"specificness": 12,
 	},
 
 	"gather":
@@ -663,8 +778,9 @@ var unitActions =
 			if (targetState.garrisonHolder.garrisonedEntitiesCount + extraCount >= targetState.garrisonHolder.capacity)
 				tooltip = "[color=\"orange\"]" + tooltip + "[/color]";
 
-			if (!MatchesClassList(entState.identity.classes, targetState.garrisonHolder.allowedClasses))
-				return false;
+			if (!MatchesClassList(entState.identity.classes, targetState.garrisonHolder.allowedClasses) ||
+			    !HasNeededAttackTypes(entState.attack, targetState.garrisonHolder.neededAttackTypes))
+				return { "possible": false };
 
 			return {
 				"possible": true,
@@ -977,7 +1093,7 @@ var unitActions =
 				"position": actionInfo.position
 			};
 		},
-		"specificness": 6,
+		"specificness": 5,
 	},
 
 	"unset-rallypoint":

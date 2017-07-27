@@ -510,8 +510,8 @@ Trigger.prototype.AttackAndPatrol = function(attackers, targetClass, triggerPoin
 				"type": "attack",
 				"entities": attackers,
 				"target": target,
-				"queued": true,
-				"allowCapture": false
+				"prefAttackTypes": ["!Capture"],
+				"queued": true
 			});
 
 	let patrolTargets = shuffleArray(this.GetTriggerPoints(triggerPointRef)).slice(0, patrolCount);
@@ -528,8 +528,8 @@ Trigger.prototype.AttackAndPatrol = function(attackers, targetClass, triggerPoin
 			"targetClasses": {
 				"attack": [targetClass]
 			},
-			"queued": true,
-			"allowCapture": false
+			"prefAttackTypes": ["!Capture"],
+			"queued": true
 		});
 	}
 };

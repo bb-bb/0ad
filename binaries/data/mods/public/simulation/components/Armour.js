@@ -51,27 +51,16 @@ Armour.prototype.TakeDamage = function(hack, pierce, crush)
 	if (this.invulnerable)
 		return { "killed": false, "change": 0 };
 
-	// Adjust damage values based on armour; exponential armour: damage = attack * 0.9^armour
-	var armourStrengths = this.GetArmourStrengths();
-	var adjHack = hack * Math.pow(0.9, armourStrengths.hack);
-	var adjPierce = pierce * Math.pow(0.9, armourStrengths.pierce);
-	var adjCrush = crush * Math.pow(0.9, armourStrengths.crush);
-
-	// Total is sum of individual damages
-	// Don't bother rounding, since HP is no longer integral.
-	var total = adjHack + adjPierce + adjCrush;
-
-	// Reduce health
-	var cmpHealth = Engine.QueryInterface(this.entity, IID_Health);
-	return cmpHealth.Reduce(total);
+	let cmpHealth = Engine.QueryInterface(this.entity, IID_Health);
+	return cmpHealth.Reduce(this.GetDamage(hack, pierce, crush));
 };
 
 Armour.prototype.GetArmourStrengths = function()
 {
 	// Work out the armour values with technology effects
-	var applyMods = (type, foundation) => {
-		var strength;
-		if (foundation)
+	let applyMods = (type, foundation) => {
+		let strength;
+		if (foundation) 
 		{
 			strength = +this.template.Foundation[type];
 			type = "Foundation/" + type;
@@ -82,13 +71,36 @@ Armour.prototype.GetArmourStrengths = function()
 		return ApplyValueModificationsToEntity("Armour/" + type, strength, this.entity);
 	};
 
-	var foundation = Engine.QueryInterface(this.entity, IID_Foundation) && this.template.Foundation;
+	let foundation = Engine.QueryInterface(this.entity, IID_Foundation) && this.template.Foundation;
 
 	return {
 		"hack": applyMods("Hack", foundation),
 		"pierce": applyMods("Pierce", foundation),
 		"crush": applyMods("Crush", foundation)
 	};
+};
+
+Armour.prototype.GetDamage = function(hack, pierce, crush)
+{
+	let armourStrengths = this.GetArmourStrengths();
+
+	// Adjust damage values based on armour; exponential armour: damage = attack * 0.9^armour
+	// Don't bother rounding, since HP is no longer integral.
+	return hack * Math.pow(0.9, armourStrengths.hack) +
+	       pierce * Math.pow(0.9, armourStrengths.pierce) +
+	       crush * Math.pow(0.9, armourStrengths.crush);
+};
+
+/**
+ * @param {number} time - RepeatTime of the attack.
+ * @param {object} attackStrengths - Strengths of the different damage types.
+ * @param {number} bonus - Multiplier for the attackStrengths.
+ * @return {number} - Health reduced per ms for this attack.
+ * TODO maybe scale CaptureValue to maxHP/maxCP?
+ */
+Armour.prototype.GetDPS = function(time, attackStrengths, bonus)
+{
+	return (this.GetDamage(attackStrengths.hack * bonus, attackStrengths.pierce * bonus, attackStrengths.crush * bonus) + attackStrengths.captureValue) / time;
 };
 
 Engine.RegisterComponentType(IID_DamageReceiver, "Armour", Armour);

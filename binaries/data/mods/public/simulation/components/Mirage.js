@@ -27,6 +27,8 @@ Mirage.prototype.Init = function()
 	this.capturePoints = [];
 	this.maxCapturePoints = 0;
 
+	this.armourStrengths = {};
+
 	this.maxAmount = null;
 	this.amount = null;
 	this.type = null;
@@ -106,6 +108,17 @@ Mirage.prototype.GetMaxCapturePoints = function() { return this.maxCapturePoints
 Mirage.prototype.GetCapturePoints = function() { return this.capturePoints; };
 
 Mirage.prototype.CanCapture = Capturable.prototype.CanCapture;
+
+// Armour data
+Mirage.prototype.CopyDamageReceiver = function(cmpDamageReceiver)
+{
+	this.miragedIids.add(IID_DamageReceiver);
+	this.armourStrengths = cmpDamageReceiver.GetArmourStrengths();
+};
+
+Mirage.prototype.GetArmourStrengths = function() { return this.armourStrengths };
+Mirage.prototype.GetDamage = Armour.prototype.GetDamage;
+Mirage.prototype.GetDPS = Armour.prototype.GetDPS;
 
 // ResourceSupply data
 

@@ -309,8 +309,9 @@ Trigger.prototype.StartAnEnemyWave = function()
 				"entities": entities,
 				"x": targetPos.x,
 				"z": targetPos.y,
-				"queued": true,
-				"targetClasses": undefined
+				"targetClasses": undefined,
+				"prefAttackTypes": ["!Capture"],
+				"queued": true
 			});
 
 			if (attackerTemplate.hero)

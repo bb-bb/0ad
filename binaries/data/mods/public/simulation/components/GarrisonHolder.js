@@ -10,6 +10,14 @@ GarrisonHolder.prototype.Schema =
 		"</attribute>" +
 		"<text/>" +
 	"</element>" +
+	"<optional>" +
+		"<element name='NeededAttackTypes' a:help='AttackTypes needed to garrison inside this holder'>" +
+			"<attribute name='datatype'>" +
+				"<value>tokens</value>" +
+			"</attribute>" +
+			"<text/>" +
+		"</element>" +
+	"</optional>" +
 	"<element name='EjectHealth' a:help='Percentage of maximum health below which this holder no longer allows garrisoning'>" +
 		"<ref name='nonNegativeDecimal'/>" +
 	"</element>" +
@@ -117,6 +125,17 @@ GarrisonHolder.prototype.GetEntities = function()
 GarrisonHolder.prototype.GetAllowedClasses = function()
 {
 	return this.template.List._string;
+};
+
+/**
+ * Returns an array of attack types which the unit garrisoned inside this
+ * particualar entity needs to have. Obtained from the entity's template 
+ */
+GarrisonHolder.prototype.GetNeededAttackTypes = function()
+{
+	return this.template.NeededAttackTypes && this.template.NeededAttackTypes._string ?
+		this.template.NeededAttackTypes._string.split(/\s+/) :
+		[];
 };
 
 /**

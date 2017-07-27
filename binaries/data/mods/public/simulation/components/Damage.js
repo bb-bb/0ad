@@ -69,8 +69,7 @@ Damage.prototype.TestCollision = function(ent, point, lateness)
  * @param {Object}   data - the data sent by the caller.
  * @param {number}   data.attacker - the entity id of the attacker.
  * @param {number}   data.target - the entity id of the target.
- * @param {Vector2D} data.origin - the origin of the projectile hit.
- * @param {Object}   data.strengths - data of the form { 'hack': number, 'pierce': number, 'crush': number }.
+ * @param {Object}   data.strengths - data of the form { 'hack': number, 'pierce': number, 'crush': number, 'captureValue': number  }.
  * @param {string}   data.type - the type of damage.
  * @param {number}   data.attackerOwner - the player id of the owner of the attacker.
  * @param {boolean}  data.isSplash - a flag indicating if it's splash damage.
@@ -156,7 +155,7 @@ Damage.prototype.MissileHit = function(data, lateness)
  * @param {Vector2D} data.origin - the origin of the projectile hit.
  * @param {number}   data.radius - the radius of the splash damage.
  * @param {string}   data.shape - the shape of the radius.
- * @param {Object}   data.strengths - data of the form { 'hack': number, 'pierce': number, 'crush': number }.
+ * @param {Object}   data.strengths - data of the form { 'hack': number, 'pierce': number, 'crush': number, 'captureValue': number  }.
  * @param {string}   data.type - the type of damage.
  * @param {number}   data.attackerOwner - the player id of the attacker.
  * @param {Vector3D} data.direction - the unit vector defining the direction.
@@ -211,15 +210,68 @@ Damage.prototype.CauseSplashDamage = function(data)
 /**
  * Causes damage on a given unit.
  * @param {Object} data - the data passed by the caller.
- * @param {Object} data.strengths - data in the form of { 'hack': number, 'pierce': number, 'crush': number }.
+ * @param {Object} data.strengths - data in the form of { 'hack': number, 'pierce': number, 'crush': number, 'captureValue': number }.
  * @param {number} data.target - the entity id of the target.
  * @param {number} data.attacker - the entity id og the attacker.
  * @param {number} data.multiplier - the damage multiplier (between 0 and 1).
  * @param {string} data.type - the type of damage.
  * @param {number} data.attackerOwner - the player id of the attacker.
+ * @param {boolean}  data.isSplash - a flag indicating if it's splash damage.
+ * ***When splash damage***
+ * @param {Vector3D} data.position - the expected position of the target.
+ * @param {Vector3D} data.direction - The unit vector defining the direction
+ * @param {boolean}  data.friendlyFire - a flag indicating if allied entities are also damaged.
+ * @param {number}   data.radius - the radius of the splash damage.
+ * @param {string}   data.shape - the shape of the splash range.
  */
 Damage.prototype.CauseDamage = function(data)
 {
+	// Do splash first in case the direct hit kills or captures the target
+	if (data.isSplash)
+	{
+		let playersToDamage = [];
+		if (!data.friendlyFire)
+			playersToDamage = QueryPlayerIDInterface(data.attackerOwner).GetEnemies();
+		else
+		{
+			let numPlayers = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager).GetNumPlayers();
+			for (let i = 0; i < numPlayers; ++i)
+				playersToDamage.push(i);
+		}
+
+		this.CauseSplashDamage({
+			"attacker": data.attacker,
+			"origin": Vector2D.from3D(data.position),
+			"radius": data.radius,
+			"shape": data.shape,
+			"strengths": data.splashStrengths,
+			"direction": data.direction,
+			"playersToDamage": playersToDamage,
+			"type": data.type,
+			"attackerOwner": data.attackerOwner
+		});
+	}
+
+	// Then capture in case of kill
+	if (data.strengths.captureValue)
+	{
+		let strength = data.strengths.captureValue * data.multiplier;
+		let cmpHealth = Engine.QueryInterface(data.target, IID_Health);
+		if (cmpHealth && cmpHealth.GetHitpoints() != 0)
+			strength *= cmpHealth.GetMaxHitpoints() / (0.1 * cmpHealth.GetMaxHitpoints() + 0.9 * cmpHealth.GetHitpoints());
+
+		let cmpCapturable = Engine.QueryInterface(data.target, IID_Capturable);
+		if (cmpCapturable && cmpCapturable.CanCapture(data.attackerOwner)
+		    && cmpCapturable.Reduce(strength, data.attackerOwner) && IsOwnedByEnemyOfPlayer(data.attackerOwner, data.target))
+			Engine.PostMessage(data.target, MT_Attacked, {
+				"attacker": data.attacker,
+				"target": data.target,
+				"type": data.type,
+				"damage": strength,
+				"attackerOwner": data.attackerOwner
+			});
+	}
+
 	let cmpDamageReceiver = Engine.QueryInterface(data.target, IID_DamageReceiver);
 	if (!cmpDamageReceiver)
 		return;

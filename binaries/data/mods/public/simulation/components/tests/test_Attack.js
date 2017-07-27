@@ -3,6 +3,7 @@ Engine.LoadHelperScript("ValueModification.js");
 Engine.LoadComponentScript("interfaces/Auras.js");
 Engine.LoadComponentScript("interfaces/AuraManager.js");
 Engine.LoadComponentScript("interfaces/Capturable.js");
+Engine.LoadComponentScript("interfaces/DamageReceiver.js");
 Engine.LoadComponentScript("interfaces/TechnologyManager.js");
 Engine.LoadComponentScript("interfaces/Formation.js");
 Engine.LoadComponentScript("interfaces/Attack.js");
@@ -31,11 +32,16 @@ function attackComponentTest(defenderClass, isEnemy, test_function)
 
 	AddMock(attacker, IID_Position, {
 		"IsInWorld": () => true,
+		"GetTurretParent": () => INVALID_ENTITY,
 		"GetHeightOffset": () => 5
 	});
 
 	AddMock(attacker, IID_Ownership, {
 		"GetOwner": () => 1
+	});
+
+	AddMock(attacker, IID_UnitMotion, {
+		IsInTargetRange: (target, min, max) => true
 	});
 
 	let cmpAttack = ConstructComponent(attacker, "Attack", {
@@ -45,6 +51,7 @@ function attackComponentTest(defenderClass, isEnemy, test_function)
 			"Crush": 0,
 			"MinRange": 3,
 			"MaxRange": 5,
+			"RepeatTime": 1000,
 			"PreferredClasses": {
 				"_string": "FemaleCitizen"
 			},
@@ -75,10 +82,15 @@ function attackComponentTest(defenderClass, isEnemy, test_function)
 			}
 		},
 		"Capture" : {
-			"Value": 8,
+			"CaptureValue": 8,
 			"MaxRange": 10,
+			"RepeatTime": 1000
 		},
-		"Slaughter": {}
+		"Slaughter": {
+			"Hack": 3,
+			"MaxRange": 5,
+			"RepeatTime": 1000
+		}
 	});
 
 	let defender = ++entityID;
@@ -86,6 +98,10 @@ function attackComponentTest(defenderClass, isEnemy, test_function)
 	AddMock(defender, IID_Identity, {
 		"GetClassesList": () => [defenderClass],
 		"HasClass": className => className == defenderClass
+	});
+
+	AddMock(defender, IID_DamageReceiver, {
+		"GetDPS": (time, strength, bonus) => 2
 	});
 
 	AddMock(defender, IID_Ownership, {
@@ -103,26 +119,33 @@ function attackComponentTest(defenderClass, isEnemy, test_function)
 // Validate template getter functions
 attackComponentTest(undefined, true ,(attacker, cmpAttack, defender) => {
 
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(), ["Melee", "Ranged", "Capture"]);
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes([]), ["Melee", "Ranged", "Capture"]);
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Melee", "Ranged", "Capture"]), ["Melee", "Ranged", "Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(), ["Melee", "Ranged", "Capture", "Slaughter"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes([]), ["Melee", "Ranged", "Capture", "Slaughter"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Melee", "Ranged", "Capture", "Slaughter"]), ["Melee", "Ranged", "Capture", "Slaughter"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Melee", "Ranged"]), ["Melee", "Ranged"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Slaughter"]), ["Slaughter"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Capture"]), ["Capture"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Melee", "!Melee"]), []);
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["!Melee"]), ["Ranged", "Capture"]);
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["!Melee", "!Ranged"]), ["Capture"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["!Melee"]), ["Ranged", "Capture", "Slaughter"]);
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["!Melee", "!Ranged"]), ["Capture", "Slaughter"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Capture", "!Ranged"]), ["Capture"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackTypes(["Capture", "Melee", "!Ranged"]), ["Melee", "Capture"]);
 
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetPreferredClasses("Melee"), ["FemaleCitizen"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetRestrictedClasses("Melee"), ["Elephant", "Archer"]);
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetFullAttackRange(), { "min": 0, "max": 80 });
-	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackStrengths("Capture"), { "value": 8 });
+	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackStrengths("Capture"), {
+		"hack": 0,
+		"pierce": 0,
+		"crush": 0,
+		"captureValue": 8
+	});
 
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetAttackStrengths("Ranged"), {
 		"hack": 0,
 		"pierce": 10,
-		"crush": 0
+		"crush": 0,
+		"captureValue": 0
 	});
 
 	TS_ASSERT_UNEVAL_EQUALS(cmpAttack.GetTimers("Ranged"), {
@@ -163,6 +186,8 @@ function testGetBestAttackAgainst(defenderClass, bestAttack, isBuilding = false)
 
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender), true);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, []), true);
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Slaughter"]), defenderClass == "Domestic");
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Slaughter"]), true);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Ranged"]), true);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Melee"]), true);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Capture"]), isBuilding);
@@ -171,12 +196,38 @@ function testGetBestAttackAgainst(defenderClass, bestAttack, isBuilding = false)
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Ranged", "!Melee"]), isBuilding || defenderClass == "Domestic");
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Melee", "!Melee"]), false);
 
-		let allowCapturing = [true];
-		if (!isBuilding)
-			allowCapturing.push(false);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, []), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Slaughter"]), bestAttack);
 
-		for (let ac of allowCapturing)
-			TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ac), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Slaughter"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Ranged"]),
+			defenderClass == "Domestic" ?
+				"Slaughter" :
+				"Ranged");
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Melee"]),
+			isBuilding ?
+				"Capture" : defenderClass == "Domestic" ?
+					"Slaughter" :
+					"Ranged");
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Capture"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Melee", "Capture"]),
+			isBuilding ?
+				"Capture" : defenderClass == "Domestic" ?
+					"Slaughter" : defenderClass == "Archer" ?
+							"Ranged" :
+							"Melee");
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Ranged", "Capture"]),
+			isBuilding ?
+				"Capture" : defenderClass == "Domestic" ?
+					"Slaughter" :
+					"Ranged");
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Ranged", "!Melee"]),
+			isBuilding ?
+				"Capture" : defenderClass == "Domestic" ?
+					"Slaughter" :
+					bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Melee", "!Melee"]), bestAttack);
 	});
 
 	attackComponentTest(defenderClass, false, (attacker, cmpAttack, defender) => {
@@ -191,6 +242,8 @@ function testGetBestAttackAgainst(defenderClass, bestAttack, isBuilding = false)
 
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender), isBuilding || defenderClass == "Domestic");
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, []), isBuilding || defenderClass == "Domestic");
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Slaughter"]), defenderClass == "Domestic");
+		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Slaughter"]), isBuilding);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Ranged"]), false);
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Melee"]), isBuilding || defenderClass == "Domestic");
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Capture"]), isBuilding);
@@ -199,18 +252,21 @@ function testGetBestAttackAgainst(defenderClass, bestAttack, isBuilding = false)
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["!Ranged", "!Melee"]), isBuilding || defenderClass == "Domestic");
 		TS_ASSERT_EQUALS(cmpAttack.CanAttack(defender, ["Melee", "!Melee"]), false);
 
-		let allowCapturing = [true];
-		if (!isBuilding)
-			allowCapturing.push(false);
-
-		let attack = undefined;
-		if (defenderClass == "Domestic")
-			attack = "Slaughter";
-		else if (defenderClass == "Structure")
-			attack = "Capture";
-
-		for (let ac of allowCapturing)
-			TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ac), bestAttack);
+		bestAttack = isBuilding ?
+				"Capture" : defenderClass == "Domestic" ?
+					"Slaughter" :
+					undefined;
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, []), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Slaughter"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Slaughter"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Ranged"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Melee"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Capture"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Melee", "Capture"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Ranged", "Capture"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["!Ranged", "!Melee"]), bestAttack);
+		TS_ASSERT_EQUALS(cmpAttack.GetBestAttackAgainst(defender, ["Melee", "!Melee"]), bestAttack);
 	});
 }
 

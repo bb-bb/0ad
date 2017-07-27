@@ -4,8 +4,10 @@
     <Ranged>
       <MaxRange>76</MaxRange>
       <MinRange>26.0</MinRange>
-      <ProjectileSpeed>37.5</ProjectileSpeed>
       <RepeatTime>6000</RepeatTime>
+      <Projectile>
+        <ProjectileSpeed>37.5</ProjectileSpeed>
+      </Projectile>
       <Splash>
         <Shape>Circular</Shape>
         <Range>10</Range>

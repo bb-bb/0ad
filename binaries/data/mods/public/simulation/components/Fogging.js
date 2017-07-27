@@ -124,6 +124,10 @@ Fogging.prototype.LoadMirage = function(player)
 	if (cmpCapturable)
 		cmpMirage.CopyCapturable(cmpCapturable);
 
+	var cmpDamageReceiver = Engine.QueryInterface(this.entity, IID_DamageReceiver);
+	if (cmpDamageReceiver)
+		cmpMirage.CopyDamageReceiver(cmpDamageReceiver);
+
 	var cmpResourceSupply = Engine.QueryInterface(this.entity, IID_ResourceSupply);
 	if (cmpResourceSupply)
 		cmpMirage.CopyResourceSupply(cmpResourceSupply);

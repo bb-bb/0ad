@@ -14,6 +14,7 @@
       <Pierce>0.0</Pierce>
       <Crush>0.0</Crush>
       <MaxRange>4.0</MaxRange>
+      <RepeatTime>1000</RepeatTime>
     </Slaughter>
   </Attack>
   <Auras datatype="tokens">

@@ -59,8 +59,9 @@ Trigger.prototype.SpawnWolvesAndAttack = function()
 				ProcessCommand(0, {
 					"type": "attack",
 					"entities": [attacker],
-					"queued": true,
-					"target": target
+					"target": target,
+					"prefAttackTypes": ["!Capture"],
+					"queued": true
 				});
 
 	this.DoAfterDelay((Math.random() * (maxWaveTime - minWaveTime) + minWaveTime) * 60 * 1000, "SpawnWolvesAndAttack", {});
