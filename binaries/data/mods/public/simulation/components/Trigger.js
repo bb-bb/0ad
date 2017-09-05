@@ -16,6 +16,7 @@ Trigger.prototype.eventNames =
 	"InitGame",
 	"Interval",
 	"OwnershipChanged",
+	"EntityRenamed",
 	"PlayerCommand",
 	"PlayerDefeated",
 	"PlayerWon",
@@ -266,6 +267,12 @@ Trigger.prototype.OnGlobalOwnershipChanged = function(msg)
 {
 	this.CallEvent("OwnershipChanged", msg);
 	// data is {"entity": ent, "from": playerId, "to": playerId}
+};
+
+Trigger.prototype.OnGlobalEntityRenamed = function(msg)
+{
+	this.CallEvent("EntityRenamed", msg);
+	// data is {"entity": oldEnt, "newentity": newEnt}
 };
 
 Trigger.prototype.OnGlobalPlayerDefeated = function(msg)

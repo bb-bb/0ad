@@ -1,0 +1,83 @@
+{
+	"gameSpeed": 2,
+	"settings": {
+		"Name": "Test Balance",
+		"Script": "test_balance.js",
+		"Description": "Spawns some units to test the balance",
+		"BaseTerrain": ["steppe_grass_a"],
+		"BaseHeight": 1,
+		"GameType": "endless",
+		"Preview": "nopreview.png",
+		"CircularMap": true,
+		"TriggerScripts": [
+			"scripts/TriggerHelper.js",
+			"random/test_balance_triggers.js"
+		],
+		"PlayerData": [
+			{
+				"Name": "Player 1",
+				"Civ": "random",
+				"Color": { "r":21, "g":55, "b":149 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 2",
+				"Civ": "random",
+				"Color": { "r": 150, "g": 20, "b": 20 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 3",
+				"Civ": "random",
+				"Color": { "r": 86, "g": 180, "b": 31 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 4",
+				"Civ": "random",
+				"Color": { "r": 231, "g": 200, "b": 5 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 5",
+				"Civ": "random",
+				"Color": { "r": 50, "g": 170, "b": 170 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 6",
+				"Civ": "random",
+				"Color": { "r": 160, "g": 80, "b": 200 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 7",
+				"Civ": "random",
+				"Color": { "r": 220, "g": 115, "b": 16 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			},
+			{
+				"Name": "Player 8",
+				"Civ": "random",
+				"Color": { "r": 64, "g": 64, "b": 64 },
+				"AI": "",
+				"AIDiff": 3,
+				"Team": -1
+			}
+		]
+	}
+}
