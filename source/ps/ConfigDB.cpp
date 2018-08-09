@@ -36,7 +36,8 @@ static pthread_mutex_t cfgdb_mutex = PTHREAD_MUTEX_INITIALIZER;
 // These entries will not be printed to logfiles
 static const std::set<CStr> g_UnloggedEntries = {
 	"lobby.password",
-	"lobby.buddies"
+	"lobby.buddies",
+	"userreport.id"
 };
 
 CConfigDB::CConfigDB()
