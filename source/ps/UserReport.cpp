@@ -569,7 +569,6 @@ std::string CUserReporter::GetStatus()
 	return m_Worker->GetStatus();
 }
 
-
 void CUserReporter::Initialize()
 {
 	ENSURE(!m_Worker); // must only be called once
@@ -607,12 +606,20 @@ void CUserReporter::Update()
 		m_Worker->Update();
 }
 
-void CUserReporter::SubmitReport(const char* type, int version, const std::string& data)
+void CUserReporter::SubmitReport(const char* type, int version, const std::string& data, const std::string& dataHumanReadable)
 {
+	// Write to logfile, enabling users to assess privacy concerns before the data is submitted
+	OsPath path = psLogDir() / OsPath("userreport_" + CStr(type) + ".txt");
+	debug_printf("UserReport written to %s\n", path.string8().c_str());
+	std::ofstream stream(OsString(path).c_str(), std::ofstream::out | std::ofstream::trunc);
+	stream << dataHumanReadable << "\n";
+	stream.close();
+
 	// If not initialised, discard the report
 	if (!m_Worker)
 		return;
 
+	// Actual submit
 	shared_ptr<CUserReport> report(new CUserReport);
 	report->m_Time = time(NULL);
 	report->m_Type = type;
