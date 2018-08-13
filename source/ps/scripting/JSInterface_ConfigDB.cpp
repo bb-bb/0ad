@@ -24,6 +24,22 @@
 #include "ps/Profile.h"
 #include "scriptinterface/ScriptInterface.h"
 
+// These entries won't be readable or writable for JS
+static const std::set<CStr> g_ProtectedConfigNames = {
+	// "lobby.password" TODO
+	"userreport.id"
+};
+
+bool isProtectedConfig(const std::string& name)
+{
+	if (g_ProtectedConfigNames.find(name) != g_ProtectedConfigNames.end())
+	{
+		LOGERROR("Access denied (%s)", name.c_str());
+		return true;
+	}
+	return false;
+}
+
 bool JSI_ConfigDB::GetConfigNamespace(const std::wstring& cfgNsString, EConfigNamespace& cfgNs)
 {
 	if (cfgNsString == L"default")
@@ -64,6 +80,9 @@ bool JSI_ConfigDB::SetChanges(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), co
 
 std::string JSI_ConfigDB::GetValue(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), const std::wstring& cfgNsString, const std::string& name)
 {
+	if (isProtectedConfig(name))
+		return "";
+
 	EConfigNamespace cfgNs;
 	if (!GetConfigNamespace(cfgNsString, cfgNs))
 		return std::string();
@@ -75,6 +94,9 @@ std::string JSI_ConfigDB::GetValue(ScriptInterface::CxPrivate* UNUSED(pCxPrivate
 
 bool JSI_ConfigDB::CreateValue(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), const std::wstring& cfgNsString, const std::string& name, const std::string& value)
 {
+	if (isProtectedConfig(name))
+		return false;
+
 	EConfigNamespace cfgNs;
 	if (!GetConfigNamespace(cfgNsString, cfgNs))
 		return false;
@@ -85,6 +107,9 @@ bool JSI_ConfigDB::CreateValue(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), c
 
 bool JSI_ConfigDB::RemoveValue(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), const std::wstring& cfgNsString, const std::string& name)
 {
+	if (isProtectedConfig(name))
+		return false;
+
 	EConfigNamespace cfgNs;
 	if (!GetConfigNamespace(cfgNsString, cfgNs))
 		return false;
