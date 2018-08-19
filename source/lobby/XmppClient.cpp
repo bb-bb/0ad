@@ -16,6 +16,7 @@
  */
 
 #include "precompiled.h"
+
 #include "XmppClient.h"
 #include "StanzaExtensions.h"
 
@@ -24,7 +25,6 @@
 #endif
 
 #include "i18n/L10n.h"
-
 #include "lib/external_libraries/enet.h"
 #include "lib/utf8.h"
 #include "network/NetServer.h"
@@ -33,6 +33,8 @@
 #include "ps/ConfigDB.h"
 #include "ps/Pyrogenesis.h"
 #include "scriptinterface/ScriptInterface.h"
+
+#include <gloox/gloox.h>
 
 //debug
 #if 1
@@ -96,8 +98,10 @@ XmppClient::XmppClient(const std::string& sUsername, const std::string& sPasswor
 	else
 		m_client = new glooxwrapper::Client(m_server);
 
-	// Disable TLS as we haven't set a certificate on the server yet
-	m_client->setTls(gloox::TLSDisabled);
+	// Setup TLS Policy
+	bool require_tls = true;
+	CFG_GET_VAL("lobby.require_tls", require_tls);
+	m_client->setTls(require_tls ? gloox::TLSRequired : gloox::TLSOptional);
 
 	// Disable use of the SASL PLAIN mechanism, to prevent leaking credentials
 	// if the server doesn't list any supported SASL mechanism or the response
@@ -252,7 +256,6 @@ void XmppClient::onDisconnect(gloox::ConnectionError error)
  */
 bool XmppClient::onTLSConnect(const glooxwrapper::CertInfo& info)
 {
-	UNUSED2(info);
 	DbgXMPP("onTLSConnect");
 	DbgXMPP(
 		"status: " << info.status <<
@@ -262,7 +265,11 @@ bool XmppClient::onTLSConnect(const glooxwrapper::CertInfo& info)
 		"\nmac: " << info.mac <<
 		"\ncipher: " << info.cipher <<
 		"\ncompression: " << info.compression );
-	return true;
+
+	bool verify_certificate = true;
+	CFG_GET_VAL("lobby.verify_certificate", verify_certificate);
+
+	return info.status == gloox::CertOk || !verify_certificate;
 }
 
 /**
